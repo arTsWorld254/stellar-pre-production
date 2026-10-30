@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Studio — Morianah</title>
+<!-- Reference client for step 4. One page, three roles:
+       artist   — apply, upload, see status, MINT approved works (wallet signs mint_work)
+       verifier — review artists and works; sign the on-chain grant_role(artist)
+       admin    — contract status, verifiers, collections, people, audit; signs grant_role(verifier), pause, admin handover
+       anyone   — sign in with Varial Wallet (SEP-10)
+     Everything on chain is signed in the wallet; the API only prepares and confirms. -->
+<script src="/freighter-api.min.js"></script>
+<script src="/stellar-sdk.min.js"></script>
+<style>
+  :root{--bg:#0b0b0d;--panel:#141418;--ink:#ece7dc;--mute:#8b8a86;--rim:rgba(255,255,255,.12);--accent:#F2652E;--ok:#7cc47c;--err:#e07a5f}
+  *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,sans-serif;font-size:14px}
+  .wrap{max-width:900px;margin:0 auto;padding:24px 16px 80px}
+  h1{font-size:22px;margin:0}h2{font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin:28px 0 10px}
+  .card{background:var(--panel);border:1px solid var(--rim);border-radius:14px;padding:16px;margin-bottom:12px}
+  .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+  button{padding:10px 16px;border-radius:999px;border:1px solid var(--rim);background:#1d1d23;color:var(--ink);cursor:pointer;font-size:13px}
+  button.primary{background:var(--ink);color:#111;border:0;font-weight:600}button:disabled{opacity:.45;cursor:default}
+  input,select,textarea{background:#0f0f12;border:1px solid var(--rim);color:var(--ink);border-radius:8px;padding:9px;font-size:13px;width:100%}
+  label{display:block;color:var(--mute);font-size:12px;margin:8px 0 4px}
+  .pill{font-size:11px;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;border:1px solid var(--rim);color:var(--mute)}
+  .pill.minted{color:var(--ok);border-color:var(--ok)}.pill.approved{color:#f0c060;border-color:#f0c060}.pill.rejected{color:var(--err)}
+  .log{font:12px/1.5 ui-monospace,monospace;color:var(--mute);white-space:pre-wrap;word-break:break-all;margin-top:8px}
+  .ok{color:var(--ok)}.err{color:var(--err)}a{color:#9ab4ff}
+  .hidden{display:none}
+  .thumb{width:72px;height:72px;object-fit:cover;border-radius:8px;background:#222}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="row" style="justify-content:space-between">
+    <h1>Morianah Studio</h1>
+    <div class="row"><span id="who" class="pill">not signed in</span><button id="signin" class="primary">Sign in with Varial</button><button id="signout" class="hidden">Sign out</button></div>
+  </div>
+  <div class="log" id="toplog"></div>
+
+  <!-- onboarding -->
+  <div id="onboard" class="hidden">
+    <h2>Create your profile</h2>
+    <div class="card">
+      <label>I am</label><select id="persona"><option value="artist">an artist</option><option value="curator">a curator</option><option value="collector">a collector</option><option value="verifier" id="persona_verifier" class="hidden">a verifier (admin only)</option></select>
+      <label>Display name</label><input id="display_name" placeholder="Your name">
+      <div class="row" style="margin-top:12px"><button id="create_profile" class="primary">Create profile</button></div>
+    </div>
+  </div>
+
+  <!-- artist -->
+  <div id="artist" class="hidden">
+    <h2>Artist status</h2>
+    <div class="card" id="artist_status"></div>
+    <div class="card" id="apply_card">
+      <label>Statement (why you should be a Morianah artist)</label><textarea id="statement" rows="3"></textarea>
+      <label>Portfolio URL (optional)</label><input id="portfolio">
+      <div class="row" style="margin-top:12px"><button id="apply" class="primary">Apply</button></div>
+    </div>
+    <h2>Upload a work</h2>
+    <div class="card" id="upload_card">
+      <label>Image (jpeg / png / webp)</label><input type="file" id="image" accept="image/jpeg,image/png,image/webp">
+      <label>Title</label><input id="title">
+      <label>Description</label><textarea id="description" rows="2"></textarea>
+      <label>Collection</label><select id="collection"></select>
+      <div class="row" style="margin-top:12px"><button id="upload" class="primary">Upload for review</button></div>
+    </div>
+    <h2>My works</h2>
+    <div id="works"></div>
+  </div>
+
+  <!-- admin -->
+  <div id="admin" class="hidden">
+    <h2>Admin · contract</h2>
+    <div class="card" id="contract_card">Reading the chain…</div>
+    <h2>Admin · verifiers</h2>
+    <div class="card">
+      <div class="row"><div style="flex:2"><label>Stellar address (G…)</label><input id="v_address" placeholder="G…"></div><div style="flex:1"><label>Name (new profiles only)</label><input id="v_name"></div></div>
+      <div class="row" style="margin-top:12px"><button id="appoint" class="primary">Appoint verifier</button></div>
+      <div class="log" id="appoint_log"></div>
+    </div>
+    <div id="verifiers"></div>
+    <h2>Admin · collections</h2>
+    <div class="card">
+      <div class="row"><div style="flex:0 0 80px"><label>ID</label><input id="c_id" type="number" min="1" placeholder="1"></div><div style="flex:1"><label>Slug</label><input id="c_slug" placeholder="if-flowers-went-to-war"></div><div style="flex:2"><label>Title</label><input id="c_title" placeholder="If Flowers Went to War"></div></div>
+      <label>Description</label><textarea id="c_desc" rows="2"></textarea>
+      <div class="row" style="margin-top:12px"><button id="create_collection" class="primary">Create collection (draft)</button></div>
+      <div class="log" id="collection_log"></div>
+    </div>
+    <div id="collections"></div>
+    <h2>Admin · people</h2>
+    <div class="row" style="margin-bottom:8px"><select id="p_filter" style="width:auto"><option value="">everyone</option><option value="artist">artists</option><option value="curator">curators</option><option value="collector">collectors</option><option value="verifier">verifiers</option></select><button id="p_reload">Refresh</button></div>
+    <div id="people"></div>
+    <h2>Admin · audit log</h2>
+    <div class="card"><div class="log" id="audit"></div></div>
+  </div>
+
+  <!-- verifier -->
+  <div id="verifier" class="hidden">
+    <h2>Artist applications</h2><div id="apps"></div>
+    <h2>Works awaiting review</h2><div id="queue"></div>
+  </div>
+</div>
+
+<script>
+const S = window.StellarSdk, F = window.freighterApi;
+const $ = (id) => document.getElementById(id);
+let session = localStorage.getItem('morianah.session') || '';
+let me = null, chain = null;
+const log = (el, m, cls) => { const e = $(el); e.className = 'log ' + (cls || ''); e.textContent = m; };
+const api = async (path, { method = 'GET', json, form } = {}) => {
+  const headers = session ? { Authorization: 'Bearer ' + session } : {};
+  let body; if (json) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(json); } if (form) body = form;
+  const r = await fetch(path, { method, headers, body }); const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status)); return j;
+};
+
+// ---------- sign in (SEP-10) / out
+$('signin').onclick = async () => {
+  try {
+    const c = await F.isConnected(); if (!c || c.isConnected === false) throw new Error('Varial Wallet not detected');
+    const a = await F.requestAccess(); if (a.error) throw new Error(a.error.message || a.error);
+    const ch = await api('/auth/challenge?account=' + a.address);
+    const signed = await F.signTransaction(ch.transaction, { networkPassphrase: ch.network_passphrase, address: a.address });
+    if (signed.error) throw new Error(signed.error.message || signed.error);
+    const v = await api('/auth/verify', { method: 'POST', json: { transaction: signed.signedTxXdr } });
+    session = v.token; localStorage.setItem('morianah.session', session); await boot();
+  } catch (e) { log('toplog', String(e.message || e), 'err'); }
+};
+$('signout').onclick = async () => { try { await api('/auth/logout', { method: 'POST' }); } catch {} session = ''; localStorage.removeItem('morianah.session'); location.reload(); };
+
+// ---------- wallet signs a contract call. The API never does this.
+async function invoke(fn, args, source) {
+  const server = new S.rpc.Server(chain.rpc_url);
+  const account = await server.getAccount(source);                  // real sequence number
+  const contract = new S.Contract(chain.contract_id);
+  let tx = new S.TransactionBuilder(account, { fee: '1000', networkPassphrase: chain.network_passphrase })
+    .addOperation(contract.call(fn, ...args)).setTimeout(60).build();
+  tx = await server.prepareTransaction(tx);                          // simulate: footprint, fees, auth entries
+  const signed = await F.signTransaction(tx.toXDR(), { networkPassphrase: chain.network_passphrase, address: source });
+  if (signed.error) throw new Error(signed.error.message || signed.error);
+  const sent = await server.sendTransaction(S.TransactionBuilder.fromXDR(signed.signedTxXdr, chain.network_passphrase));
+  if (sent.status === 'ERROR') throw new Error('submit failed: ' + JSON.stringify(sent.errorResult));
+  for (let i = 0; i < 20; i++) {                                     // poll ~20s for inclusion
+    await new Promise((r) => setTimeout(r, 1200));
+    const t = await server.getTransaction(sent.hash);
+    if (t.status === 'SUCCESS') return sent.hash;
+    if (t.status === 'FAILED') throw new Error('transaction failed on chain');
+  }
+  throw new Error('timed out waiting for the transaction; the API cron will reconcile it');
+}
+const hexBytes = (hex) => S.xdr.ScVal.scvBytes(Uint8Array.from(hex.match(/../g).map((h) => parseInt(h, 16))));
+
+// ---------- boot
+async function boot() {
+  chain = await api('/api/chain/info');
+  if (!session) return;
+  try { me = await api('/api/me'); } catch { session = ''; localStorage.removeItem('morianah.session'); return; }
+  $('who').textContent = me.profile ? `${me.profile.display_name} · ${me.profile.persona}` : me.address.slice(0, 6) + '… (no profile)';
+  $('signin').classList.add('hidden'); $('signout').classList.remove('hidden');
+  if (me.isAdmin) { $('persona_verifier').classList.remove('hidden'); $('admin').classList.remove('hidden'); loadAdmin().catch((e) => log('toplog', e.message, 'err')); }
+  if (!me.profile) { $('onboard').classList.remove('hidden'); return; }
+  if (me.profile.persona === 'artist') { $('artist').classList.remove('hidden'); await loadArtist(); }
+  if (me.isVerifier) { $('verifier').classList.remove('hidden'); await loadVerifier(); }
+}
+$('create_profile').onclick = async () => {
+  try { await api('/api/profiles', { method: 'POST', json: { persona: $('persona').value, display_name: $('display_name').value } }); location.reload(); }
+  catch (e) { log('toplog', e.message, 'err'); }
+};
+
+// ---------- artist
+async function loadArtist() {
+  const a = (await api('/api/artists/me')).application;
+  const st = $('artist_status');
+  if (!a) { st.innerHTML = 'Not yet applied.'; $('upload_card').classList.add('hidden'); }
+  else {
+    st.innerHTML = `Application: <span class="pill ${a.status}">${a.status}</span> · on-chain artist role: <b>${a.onchain_granted ? 'granted' : 'not yet'}</b>` + (a.review_note ? `<div class="log">${a.review_note}</div>` : '');
+    $('apply_card').classList.toggle('hidden', a.status !== 'rejected');
+    $('upload_card').classList.toggle('hidden', a.status !== 'approved');
+  }
+  const cols = (await api('/api/collections')).collections;
+  $('collection').innerHTML = '<option value="">— none —</option>' + cols.map((c) => `<option value="${c.id}">${c.title}</option>`).join('');
+  const works = (await api('/api/submissions/mine')).submissions;
+  $('works').innerHTML = works.map((w) => `
+    <div class="card row" id="w-${w.id}">
+      <img class="thumb" data-src="/api/images/${w.image_key}" alt="">
+      <div style="flex:1"><b>${w.title}</b><br><span class="pill ${w.status}">${w.status}</span>
+        ${w.token_id != null ? ` · token #${w.token_id} · <a target="_blank" href="https://stellar.expert/explorer/testnet/contract/${chain.contract_id}">on chain ↗</a>` : ''}
+        ${w.review_note ? `<div class="log">${w.review_note}</div>` : ''}
+        <div class="log" id="log-${w.id}"></div></div>
+      ${w.status === 'approved' ? `<button class="primary" onclick="mintWork('${w.id}')">Mint on Stellar</button>` : ''}
+      ${w.status === 'pending' ? `<button onclick="withdraw('${w.id}')">Withdraw</button>` : ''}
+    </div>`).join('') || '<div class="card">No works yet.</div>';
+}
+// image thumbnails need the session header; fetch them as blobs
+async function fixThumbs() { for (const img of document.querySelectorAll('img.thumb[data-src]')) { try { const r = await fetch(img.dataset.src, { headers: { Authorization: 'Bearer ' + session } }); if (r.ok) img.src = URL.createObjectURL(await r.blob()); img.removeAttribute('data-src'); } catch {} } }
+$('apply').onclick = async () => { try { await api('/api/artists/apply', { method: 'POST', json: { statement: $('statement').value, portfolio_url: $('portfolio').value } }); await loadArtist(); } catch (e) { log('toplog', e.message, 'err'); } };
+$('upload').onclick = async () => {
+  try {
+    const f = $('image').files[0]; if (!f) throw new Error('choose an image');
+    const fd = new FormData(); fd.set('image', f); fd.set('title', $('title').value); fd.set('description', $('description').value); if ($('collection').value) fd.set('collection_id', $('collection').value);
+    await api('/api/uploads', { method: 'POST', form: fd }); $('title').value = ''; $('description').value = ''; $('image').value = ''; await loadArtist(); await fixThumbs();
+  } catch (e) { log('toplog', e.message, 'err'); }
+};
+window.withdraw = async (id) => { try { await api('/api/submissions/' + id, { method: 'DELETE' }); await loadArtist(); await fixThumbs(); } catch (e) { log('toplog', e.message, 'err'); } };
+
+// The mint: API prepares (IPFS) → wallet signs mint_work → API confirms from the chain.
+window.mintWork = async (id) => {
+  const L = (m, c) => log('log-' + id, m, c);
+  try {
+    L('Pinning to IPFS…');
+    const { mint: m } = await api(`/api/submissions/${id}/prepare-mint`, { method: 'POST' });
+    L(`Pinned. CID ${m.cid}\nAsk your wallet to sign mint_work…`);
+    const args = [new S.Address(m.artist).toScVal(), S.nativeToScVal(m.collection, { type: 'u32' }), S.nativeToScVal(m.cid, { type: 'string' }), hexBytes(m.sha256)];
+    const hash = await invoke('mint_work', args, m.artist);
+    L(`Minted. tx ${hash}\nConfirming with the API…`);
+    const c = await api(`/api/submissions/${id}/confirm-mint`, { method: 'POST', json: { tx_hash: hash } });
+    L(`Done — token #${c.token_id}`, 'ok'); await loadArtist(); await fixThumbs();
+  } catch (e) { L(String(e.message || e), 'err'); }
+};
+
+// ---------- verifier
+async function loadVerifier() {
+  const apps = (await api('/api/verify/artists?status=pending')).applications;
+  const approved = (await api('/api/verify/artists?status=approved')).applications;
+  $('apps').innerHTML = (apps.map((a) => `
+    <div class="card"><b>${a.display_name}</b> <span class="log">${a.address}</span><div class="log">${a.statement}</div>
+      <div class="row" style="margin-top:8px"><button class="primary" onclick="reviewArtist('${a.address}','approved')">Approve</button><button onclick="reviewArtist('${a.address}','rejected')">Reject</button></div></div>`).join('')
+    + approved.map((a) => `
+    <div class="card"><b>${a.display_name}</b> <span class="pill approved">approved</span> <span class="log">${a.address}</span>
+      <div class="row" style="margin-top:8px"><button class="primary" onclick="grantOnChain('${a.address}')">Sign on-chain artist role</button><button onclick="syncRole('${a.address}')">Check chain</button></div>
+      <div class="log" id="role-${a.address}"></div></div>`).join('')) || '<div class="card">Nothing pending.</div>';
+  const q = (await api('/api/verify/submissions?status=pending')).submissions;
+  $('queue').innerHTML = q.map((w) => `
+    <div class="card row"><img class="thumb" data-src="/api/images/${w.image_key}" alt=""><div style="flex:1"><b>${w.title}</b> — ${w.artist_name}<div class="log">${w.sha256}</div></div>
+      <button class="primary" onclick="reviewWork('${w.id}','approved')">Approve</button><button onclick="reviewWork('${w.id}','rejected')">Reject</button></div>`).join('') || '<div class="card">Queue is empty.</div>';
+  await fixThumbs();
+}
+window.reviewArtist = async (addr, decision) => { try { await api('/api/verify/artists/' + addr, { method: 'POST', json: { decision } }); await loadVerifier(); } catch (e) { log('toplog', e.message, 'err'); } };
+window.reviewWork = async (id, decision) => { try { await api('/api/verify/submissions/' + id, { method: 'POST', json: { decision } }); await loadVerifier(); } catch (e) { log('toplog', e.message, 'err'); } };
+// Verifier signs grant_role(artist, "artist", verifier) — the only way an artist gets minting rights.
+window.grantOnChain = async (addr) => {
+  const L = (m, c) => log('role-' + addr, m, c);
+  try {
+    L('Ask your wallet to sign grant_role…');
+    const args = [new S.Address(addr).toScVal(), S.xdr.ScVal.scvSymbol('artist'), new S.Address(me.address).toScVal()];
+    const hash = await invoke('grant_role', args, me.address);
+    L('Granted. tx ' + hash + '\nSyncing…'); await syncRole(addr);
+  } catch (e) { L(String(e.message || e), 'err'); }
+};
+window.syncRole = async (addr) => { try { const r = await api(`/api/verify/artists/${addr}/sync`, { method: 'POST' }); log('role-' + addr, 'On-chain artist role: ' + (r.onchain_artist ? 'granted' : 'not granted'), r.onchain_artist ? 'ok' : ''); } catch (e) { log('role-' + addr, e.message, 'err'); } };
+
+// ---------- admin. Every on-chain action here is signed by the admin wallet; the API only mirrors.
+const short = (a) => a.slice(0, 6) + '…' + a.slice(-4);
+const esc = (t) => String(t ?? '').replace(/[&<>"]/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[ch]));
+async function loadAdmin() { await loadContract(); await Promise.all([loadVerifiers(), loadCollections(), loadPeople(), loadAudit()]); }
+
+async function loadContract() {
+  const el = $('contract_card');
+  try {
+    const vs = (await api('/api/admin/profiles?persona=verifier')).profiles.map((p) => p.address);
+    const c = await api('/api/admin/chain?verifiers=' + vs.join(','));
+    const mine = c.admin === me.address;
+    el.innerHTML = `Contract <a target="_blank" href="https://stellar.expert/explorer/testnet/contract/${c.contract_id}">${short(c.contract_id)} ↗</a>
+      · on-chain admin: <b class="${mine ? 'ok' : ''}">${c.admin ? (mine ? 'this wallet' : short(c.admin)) : 'unknown'}</b>
+      · minting: <b class="${c.paused ? 'err' : 'ok'}">${c.paused ? 'PAUSED' : 'open'}</b>
+      <div class="row" style="margin-top:10px">
+        ${mine ? (c.paused ? `<button onclick="setPause(false)">Unpause minting</button>` : `<button onclick="setPause(true)">Pause minting</button>`) : `<button class="primary" onclick="acceptAdmin()">Accept on-chain admin</button>`}
+      </div>
+      ${mine ? '' : `<div class="log">This wallet is not yet the contract admin. From the machine holding the deploy key, run the handover command in the README (transfer_admin_role → this address), then press Accept.</div>`}
+      <div class="log" id="contract_log"></div>`;
+    window._chainVerifiers = c.verifiers;
+  } catch (e) { el.innerHTML = `<span class="err">${esc(e.message)}</span>`; }
+}
+window.setPause = async (on) => {
+  const L = (m, c) => log('contract_log', m, c);
+  try { L('Ask your wallet to sign ' + (on ? 'pause' : 'unpause') + '…'); const h = await invoke(on ? 'pause' : 'unpause', [new S.Address(me.address).toScVal()], me.address); L('Done. tx ' + h, 'ok'); await loadContract(); }
+  catch (e) { L(String(e.message || e), 'err'); }
+};
+window.acceptAdmin = async () => {
+  const L = (m, c) => log('contract_log', m, c);
+  try { L('Ask your wallet to sign accept_admin_transfer…'); const h = await invoke('accept_admin_transfer', [], me.address); L('You are now the contract admin. tx ' + h, 'ok'); await loadContract(); }
+  catch (e) { L(String(e.message || e), 'err'); }
+};
+
+async function loadVerifiers() {
+  const vs = (await api('/api/admin/profiles?persona=verifier')).profiles;
+  const onchain = window._chainVerifiers || {};
+  $('verifiers').innerHTML = vs.map((p) => `
+    <div class="card"><b>${esc(p.display_name)}</b> <span class="pill ${p.status === 'active' ? 'approved' : 'rejected'}">${p.status}</span> <span class="log">${p.address}</span>
+      <div class="log">on-chain verifier role: <b>${onchain[p.address] ? 'granted' : 'not yet'}</b></div>
+      <div class="row" style="margin-top:8px">${onchain[p.address] ? '' : `<button class="primary" onclick="grantVerifier('${p.address}')">Sign on-chain verifier role</button>`}
+        ${p.address === me.address ? '' : (p.status === 'active' ? `<button onclick="setStatus('${p.address}','suspended')">Suspend</button>` : `<button onclick="setStatus('${p.address}','active')">Reactivate</button>`)}</div>
+      <div class="log" id="vlog-${p.address}"></div></div>`).join('') || '<div class="card">No verifiers yet. Appoint one above, then sign their on-chain role.</div>';
+}
+$('appoint').onclick = async () => {
+  try { const r = await api('/api/admin/verifiers', { method: 'POST', json: { address: $('v_address').value.trim(), display_name: $('v_name').value } }); log('appoint_log', 'Appointed. Next: ' + r.next, 'ok'); $('v_address').value = ''; $('v_name').value = ''; await loadVerifiers(); }
+  catch (e) { log('appoint_log', e.message, 'err'); }
+};
+// Admin signs grant_role(addr, "verifier", admin) — the on-chain admin is the only account that can.
+window.grantVerifier = async (addr) => {
+  const L = (m, c) => log('vlog-' + addr, m, c);
+  try {
+    L('Ask your wallet to sign grant_role…');
+    const h = await invoke('grant_role', [new S.Address(addr).toScVal(), S.xdr.ScVal.scvSymbol('verifier'), new S.Address(me.address).toScVal()], me.address);
+    L('Granted. tx ' + h, 'ok'); await loadContract(); await loadVerifiers();
+  } catch (e) { L(String(e.message || e), 'err'); }
+};
+
+async function loadCollections() {
+  const cs = (await api('/api/admin/collections')).collections;
+  $('collections').innerHTML = cs.map((c) => `
+    <div class="card row"><div style="flex:1"><b>#${c.id} ${esc(c.title)}</b> <span class="pill ${c.status === 'live' ? 'minted' : ''}">${c.status}</span><div class="log">/${esc(c.slug)}${c.description ? ' — ' + esc(c.description) : ''}</div></div>
+      ${c.status === 'live' ? `<button onclick="setCollection(${c.id},'draft')">Unpublish</button>` : `<button class="primary" onclick="setCollection(${c.id},'live')">Publish</button>`}</div>`).join('') || '<div class="card">No collections yet. Artists can only file works under a <b>live</b> collection.</div>';
+}
+$('create_collection').onclick = async () => {
+  try {
+    await api('/api/admin/collections', { method: 'POST', json: { id: Number($('c_id').value), slug: $('c_slug').value.trim(), title: $('c_title').value.trim(), description: $('c_desc').value } });
+    log('collection_log', 'Created as draft — press Publish when ready.', 'ok'); for (const id of ['c_id', 'c_slug', 'c_title', 'c_desc']) $(id).value = ''; await loadCollections();
+  } catch (e) { log('collection_log', e.message, 'err'); }
+};
+window.setCollection = async (id, status) => { try { await api('/api/admin/collections/' + id, { method: 'PATCH', json: { status } }); await loadCollections(); } catch (e) { log('collection_log', e.message, 'err'); } };
+
+async function loadPeople() {
+  const q = $('p_filter').value; const ps = (await api('/api/admin/profiles' + (q ? '?persona=' + q : ''))).profiles;
+  $('people').innerHTML = ps.map((p) => `
+    <div class="card row"><div style="flex:1"><b>${esc(p.display_name)}</b> <span class="pill">${p.persona}</span> <span class="pill ${p.status === 'active' ? 'approved' : 'rejected'}">${p.status}</span><div class="log">${p.address}</div></div>
+      ${p.address === me.address ? '' : (p.status === 'active' ? `<button onclick="setStatus('${p.address}','suspended')">Suspend</button>` : `<button class="primary" onclick="setStatus('${p.address}','active')">Reactivate</button>`)}</div>`).join('') || '<div class="card">Nobody yet.</div>';
+}
+$('p_reload').onclick = loadPeople; $('p_filter').onchange = loadPeople;
+window.setStatus = async (addr, status) => { try { await api('/api/admin/profiles/' + addr + '/status', { method: 'POST', json: { status } }); await loadPeople(); await loadVerifiers(); } catch (e) { log('toplog', e.message, 'err'); } };
+
+async function loadAudit() {
+  const rows = (await api('/api/admin/audit')).log.slice(0, 60);
+  $('audit').textContent = rows.map((r) => `${new Date(r.at * 1000).toISOString().replace('T', ' ').slice(0, 16)}  ${r.action.padEnd(20)} ${short(r.actor)}  ${r.subject || ''}`).join('\n') || 'Nothing yet.';
+}
+
+boot().then(fixThumbs).catch((e) => log('toplog', e.message, 'err'));
+</script>
+</body>
+</html>

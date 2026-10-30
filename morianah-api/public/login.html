@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in — Morianah</title>
+<!-- Reference implementation of the wallet side of SEP-10 login.
+     Works with Varial Wallet (formerly Freighter), the SDF browser wallet. The @stellar/freighter-api
+     library (bundled locally, v6.0.1) talks to the extension by browser messaging, so the rename does not affect it. -->
+<script src="/freighter-api.min.js"></script>
+<style>
+  body{font-family:system-ui,sans-serif;background:#0b0b0d;color:#ece7dc;display:grid;place-items:center;min-height:100vh;margin:0}
+  .card{width:min(420px,92vw);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:28px;background:#141418}
+  h1{font-size:22px;margin:0 0 6px}p{color:#8b8a86;font-size:14px;line-height:1.5}
+  button{width:100%;padding:14px;border-radius:999px;border:0;background:#ece7dc;color:#111;font-weight:600;font-size:15px;cursor:pointer;margin-top:14px}
+  button:disabled{opacity:.5;cursor:default}
+  .out{margin-top:16px;font:12px/1.5 ui-monospace,monospace;color:#9a948a;word-break:break-all;white-space:pre-wrap}
+  .ok{color:#7cc47c}.err{color:#e07a5f}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Sign in to Morianah</h1>
+  <p>Your wallet signs a one-time challenge. Nothing is sent to the network and no fee is paid.</p>
+  <button id="go">Continue with Varial Wallet</button>
+  <div class="out" id="out"></div>
+</div>
+<script>
+const API = location.origin;                      // the Worker, when served from it; else set explicitly
+const out = (m, cls) => { const el = document.getElementById('out'); el.className = 'out ' + (cls||''); el.textContent = m; };
+
+document.getElementById('go').onclick = async () => {
+  const btn = document.getElementById('go'); btn.disabled = true;
+  try {
+    const f = window.freighterApi;
+    if (!f) throw new Error('Wallet library failed to load');
+    const conn = await f.isConnected();
+    if (!conn || conn.isConnected === false) throw new Error('Varial Wallet (formerly Freighter) not detected. Install it from the Chrome Web Store, then reload this page.');
+    const access = await f.requestAccess();
+    if (access.error) throw new Error(typeof access.error === 'string' ? access.error : access.error.message || 'wallet refused access');
+    const account = access.address;
+
+    // 1. challenge
+    const ch = await (await fetch(`${API}/auth/challenge?account=${account}`)).json();
+    if (!ch.ok) throw new Error(ch.error);
+
+    // 2. wallet signs (the wallet shows a prompt; it is a sequence-0 transaction, never submittable)
+    const signed = await f.signTransaction(ch.transaction, { networkPassphrase: ch.network_passphrase, address: account });
+    if (signed.error) throw new Error(typeof signed.error === 'string' ? signed.error : signed.error.message || 'signing refused');
+
+    // 3. verify → session
+    const v = await (await fetch(`${API}/auth/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ transaction: signed.signedTxXdr }) })).json();
+    if (!v.ok) throw new Error(v.error);
+
+    localStorage.setItem('morianah.session', v.token);
+    out(`Signed in as ${v.address}\n${v.profile ? 'Welcome back, ' + v.profile.display_name : 'No profile yet → onboarding'}`, 'ok');
+  } catch (e) { out(String(e.message || e), 'err'); btn.disabled = false; }
+};
+</script>
+</body>
+</html>

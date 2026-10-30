@@ -1,0 +1,40 @@
+name = "morianah-api"
+main = "src/index.ts"
+compatibility_date = "2026-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "morianah"
+database_id = "REPLACE_WITH_ID_FROM_wrangler_d1_create"
+migrations_dir = "migrations"
+
+[[r2_buckets]]
+binding = "IMAGES"
+bucket_name = "morianah-images"
+
+[triggers]
+crons = ["0 * * * *"]   # hourly: sweep expired sessions/challenges
+
+[vars]
+HOME_DOMAIN = "morianahinc.art"
+WEB_AUTH_DOMAIN = "api.morianahinc.art"
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+# Step 4 — the deployed morianah-works contract and the RPC to read it through
+CONTRACT_ID = "REPLACE_WITH_CONTRACT_ID_FROM_deploy-with-wallet"
+RPC_URL = "https://soroban-testnet.stellar.org"
+# PINATA_JWT is a secret (wrangler secret put PINATA_JWT); without it, dev placeholder CIDs are used.
+# SERVER_SIGNING_SECRET is a secret: wrangler secret put SERVER_SIGNING_SECRET
+# Comma-separated Stellar addresses that are platform admins (the multisig signers / ops).
+ADMIN_ADDRESSES = ""
+# Max image uploads per artist per 24h
+UPLOAD_DAILY_CAP = "20"
+# Max image bytes (25 MB)
+MAX_IMAGE_BYTES = "26214400"
+# Set TURNSTILE_SECRET as a secret (wrangler secret put TURNSTILE_SECRET) to enable bot checks on uploads.
+
+[assets]
+directory = "./public"     # serves /login.html
+
+[dev]
+port = 8787

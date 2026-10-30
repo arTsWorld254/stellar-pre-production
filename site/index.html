@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Morianah Inc — Culture as Infrastructure</title>
+<meta name="description" content="Morianah is a cultural infrastructure company that creates, amplifies and distributes value through creativity — connecting artists, collectors, curators, institutions and communities." />
+<link rel="icon" type="image/png" href="./assets/favicon.png" />
+<link rel="apple-touch-icon" href="./assets/apple-touch-icon.png" />
+
+<!-- Link previews (Open Graph + Twitter).
+     For best results once your domain is live, change these to absolute URLs,
+     e.g. https://yourdomain.com/assets/og-image.jpg -->
+<meta property="og:title" content="Morianah Inc — Culture as Infrastructure" />
+<meta property="og:description" content="Meaning, value, purpose. Freedom through art — connecting artists, collectors and communities." />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="https://morianahinc.com/" />
+<meta property="og:image" content="https://morianahinc.com/assets/og-image.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Morianah Inc — Culture as Infrastructure" />
+<meta name="twitter:description" content="Meaning, value, purpose. Freedom through art." />
+<meta name="twitter:image" content="https://morianahinc.com/assets/og-image.jpg" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+<style>
+@font-face{
+  font-family:"Dirtbag";
+  src:url("./assets/fonts/dirtbag.woff2") format("woff2"),
+      url("./assets/fonts/dirtbag.woff") format("woff");
+  font-weight:400 900;
+  font-display:swap;
+}
+/* ============ TOKENS ============ */
+:root{
+  --void:#08090c;
+  --void-2:#0b0d11;
+  --ink:#f3f5f8;
+  --mute:#9aa4b0;
+  --faint:#5d6671;
+
+  --green:#7cb84d;
+  --green-soft:#9ed36f;
+  --blue:#5a9fd4;
+  --blue-soft:#8cc3ef;
+  --orange:#ff5e3a;
+  --purple:#7d54c9;
+
+  --glass:rgba(255,255,255,0.035);
+  --glass-2:rgba(255,255,255,0.055);
+  --rim:rgba(255,255,255,0.10);
+  --rim-strong:rgba(255,255,255,0.18);
+
+  --radius:26px;
+  --radius-sm:16px;
+  --gap:22px;                 /* equal space between stacked panels */
+  --pad:clamp(22px,4vw,52px);
+  --maxw:1160px;
+
+  --spectrum:linear-gradient(100deg,var(--orange) 0%,#b9407f 46%,var(--purple) 64%,var(--blue) 100%);
+}
+
+/* ============ RESET ============ */
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  background:var(--void);
+  color:var(--ink);
+  font-family:"Space Grotesk",system-ui,sans-serif;
+  font-weight:400;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+a{color:inherit;text-decoration:none}
+img{display:block;max-width:100%}
+::selection{background:rgba(124,184,77,.3)}
+
+/* ============ AMBIENT BACKGROUND ============ */
+.bg{position:fixed;inset:0;z-index:-2;pointer-events:none;background:var(--void)}
+.bg::before{ /* pixel-grid weave */
+  content:"";position:absolute;inset:-2px;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.022) 1px,transparent 1px);
+  background-size:34px 34px;
+  mask-image:radial-gradient(ellipse 80% 60% at 50% 30%,#000 40%,transparent 100%);
+}
+.glow{position:fixed;z-index:-1;border-radius:50%;filter:blur(90px);opacity:.5;pointer-events:none;animation:drift 26s ease-in-out infinite alternate}
+.glow.g1{width:48vw;height:48vw;left:-12vw;top:-8vw;background:radial-gradient(circle,rgba(124,184,77,.42),transparent 68%)}
+.glow.g2{width:46vw;height:46vw;right:-14vw;top:24vh;background:radial-gradient(circle,rgba(90,159,212,.40),transparent 68%);animation-delay:-8s}
+.glow.g3{width:40vw;height:40vw;left:18vw;bottom:-12vw;background:radial-gradient(circle,rgba(255,94,58,.22),transparent 70%);animation-delay:-15s}
+@keyframes drift{to{transform:translate3d(4%,5%,0) scale(1.12)}}
+
+/* ============ LAYOUT SHELL ============ */
+.shell{max-width:var(--maxw);margin:0 auto;padding:0 clamp(14px,3vw,28px)}
+.stack{display:flex;flex-direction:column;gap:var(--gap);padding:110px 0 var(--gap)}
+
+/* ============ GLASS PANEL ============ */
+.panel{
+  position:relative;
+  background:var(--glass);
+  backdrop-filter:blur(22px) saturate(125%);
+  -webkit-backdrop-filter:blur(22px) saturate(125%);
+  border:1px solid var(--rim);
+  border-radius:var(--radius);
+  padding:var(--pad);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),     /* top rim highlight */
+    inset 0 0 0 1px rgba(255,255,255,.012),
+    0 30px 60px -30px rgba(0,0,0,.7);
+  overflow:hidden;
+}
+.panel::after{ /* faint inner pixel texture so the glass reads as woven */
+  content:"";position:absolute;inset:0;pointer-events:none;opacity:.5;
+  background-image:
+    linear-gradient(rgba(255,255,255,.015) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.015) 1px,transparent 1px);
+  background-size:26px 26px;
+  mask-image:linear-gradient(160deg,#000,transparent 55%);
+}
+.panel > *{position:relative;z-index:1}
+
+/* ============ NAV ============ */
+.nav{
+  position:fixed;top:14px;left:0;right:0;z-index:50;
+}
+.nav-inner{
+  max-width:var(--maxw);margin:0 auto;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:18px;padding:10px 12px 10px 14px;
+  background:rgba(12,14,18,.55);
+  backdrop-filter:blur(18px) saturate(140%);
+  -webkit-backdrop-filter:blur(18px) saturate(140%);
+  border:1px solid var(--rim);
+  border-radius:var(--radius);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 18px 40px -24px rgba(0,0,0,.8);
+}
+.brand{display:flex;align-items:center;gap:11px}
+.brand-mark{height:58px;width:auto;object-fit:contain}
+.nav-cta{
+  font-size:13.5px;font-weight:500;color:#0c0d10 !important;
+  padding:11px 20px !important;border-radius:999px;
+  background:var(--green-soft);
+  box-shadow:0 0 0 1px rgba(255,255,255,.2),0 8px 20px -8px rgba(124,184,77,.7);
+  transition:.2s;
+}
+.nav-cta:hover{background:#b6e58a;transform:translateY(-1px)}
+.nav-toggle{display:none;background:none;border:0;color:var(--ink);font-size:22px;cursor:pointer;padding:4px 8px}
+
+/* ============ TYPE ============ */
+.eyebrow{
+  font-family:"Space Mono",monospace;font-size:11.5px;font-weight:700;
+  letter-spacing:.28em;text-transform:uppercase;color:var(--blue-soft);
+  display:inline-flex;align-items:center;gap:9px;
+}
+.eyebrow::before{content:"";width:22px;height:1px;background:var(--blue);opacity:.7}
+h1,h2,h3{font-family:"Dirtbag",sans-serif;font-weight:400;line-height:1.08;letter-spacing:.005em}
+h1{font-size:clamp(2.5rem,6.4vw,4.6rem)}
+h2{font-size:clamp(1.9rem,3.6vw,2.9rem)}
+h3{font-size:clamp(1.1rem,1.6vw,1.35rem);font-weight:700;letter-spacing:-.01em}
+.lead{font-size:clamp(1.02rem,1.5vw,1.22rem);color:var(--mute);max-width:60ch}
+.kicker{font-family:"Space Mono",monospace;font-size:12px;letter-spacing:.16em;color:var(--faint);text-transform:uppercase}
+
+/* gradient ink */
+.spectrum-ink{background:var(--spectrum);-webkit-background-clip:text;background-clip:text;color:transparent}
+.green-ink{color:var(--green-soft)}
+.blue-ink{color:var(--blue-soft)}
+.orange-ink{color:var(--orange)}
+
+/* ============ BUTTONS ============ */
+.btn{
+  display:inline-flex;align-items:center;gap:9px;
+  font-family:"Space Grotesk";font-weight:500;font-size:15px;
+  padding:13px 24px;border-radius:999px;cursor:pointer;border:1px solid transparent;
+  transition:transform .2s,box-shadow .2s,background .2s;
+}
+.btn .arr{transition:transform .25s}
+.btn:hover .arr{transform:translateX(4px)}
+.btn-primary{
+  color:#0b0c0f;background:var(--spectrum);background-size:140% 140%;
+  box-shadow:0 0 0 1px rgba(255,255,255,.16),0 16px 38px -14px rgba(125,84,201,.8);
+  font-weight:600;
+}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 0 0 1px rgba(255,255,255,.26),0 22px 46px -14px rgba(125,84,201,.95)}
+.btn-ghost{color:var(--ink);background:var(--glass-2);border-color:var(--rim)}
+.btn-ghost:hover{background:rgba(255,255,255,.10);transform:translateY(-2px)}
+
+/* ============ HERO (borderless, full-bleed) ============ */
+.hero{position:relative;overflow:hidden;border:0;background:none;box-shadow:none;border-radius:var(--radius);
+  width:100vw;margin-left:calc(50% - 50vw);padding:clamp(34px,5vw,70px) clamp(16px,4vw,40px) clamp(24px,3vw,44px)}
+.hero-center{position:relative;z-index:3;max-width:680px;margin:0 auto;text-align:center;display:flex;flex-direction:column;align-items:center}
+.wordmark-anim{width:min(82%,540px);height:auto;margin-bottom:18px;filter:drop-shadow(0 18px 40px rgba(0,0,0,.55))}
+.hero h1{margin-bottom:16px;font-size:clamp(2.1rem,5.4vw,3.6rem)}
+.hero-sub{margin:0 auto;max-width:52ch}
+/* rotating word wheel */
+.hero-tagline{font-family:"Dirtbag",sans-serif;font-size:clamp(1.6rem,3.4vw,2.4rem);letter-spacing:.05em;color:var(--ink);margin:4px auto 0;height:1.5em;overflow:hidden;position:relative}
+.word-wheel{display:inline-block}
+.word-wheel>span{display:inline-block}
+.word-wheel.out>span{animation:wheelOut .42s cubic-bezier(.6,.04,.5,1) forwards}
+.word-wheel.in>span{animation:wheelIn .42s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes wheelOut{to{transform:translateY(-90%) rotateX(-70deg);opacity:0}}
+@keyframes wheelIn{from{transform:translateY(90%) rotateX(70deg);opacity:0}to{transform:none;opacity:1}}
+.hero-cta{display:flex;gap:14px;flex-wrap:wrap;margin-top:24px}
+.hero-freedom{font-family:"Space Grotesk",sans-serif;font-size:clamp(.95rem,1.5vw,1.1rem);color:var(--mute);letter-spacing:.02em;margin:8px auto 0}
+
+/* floating artwork gallery (wide, both sides) */
+.art-field{position:absolute;inset:0;z-index:1;pointer-events:none}
+.art-float{position:absolute;margin:0;border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.16);background:#0c0e12;box-shadow:0 26px 50px -20px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.15);animation:floaty 9s ease-in-out infinite}
+.art-float img{display:block;width:100%;height:100%;object-fit:cover}
+.af1{width:150px;height:184px;left:2%;top:8%;--r:-6deg;animation-delay:-1s}
+.af2{width:124px;height:124px;left:8%;top:46%;--r:4deg;animation-delay:-3.5s}
+.af3{width:120px;height:148px;left:1.5%;bottom:4%;--r:-3deg;animation-delay:-6s}
+.af4{width:128px;height:104px;left:15%;top:74%;--r:5deg;animation-delay:-2.4s}
+.af5{width:112px;height:138px;left:13%;top:14%;--r:7deg;animation-delay:-5s}
+.af6{width:150px;height:150px;right:2%;top:8%;--r:5deg;animation-delay:-2s}
+.af7{width:120px;height:148px;right:8.5%;top:46%;--r:-4deg;animation-delay:-4.5s}
+.af8{width:122px;height:122px;right:1.5%;bottom:5%;--r:4deg;animation-delay:-7s}
+.af9{width:126px;height:104px;right:15%;top:74%;--r:-5deg;animation-delay:-3s}
+.af10{width:110px;height:134px;right:13%;top:13%;--r:-6deg;animation-delay:-6.5s}
+.art-float{transform:rotate(var(--r,0deg))}
+@keyframes floaty{50%{transform:translateY(-14px) rotate(var(--r,0deg))}}
+
+/* product preview card */
+.preview{
+  background:linear-gradient(160deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+  border:1px solid var(--rim);border-radius:var(--radius-sm);
+  padding:16px;box-shadow:inset 0 1px 0 rgba(255,255,255,.1),0 30px 60px -34px #000;
+}
+.preview .ribbon{display:flex;align-items:center;justify-content:space-between;font-family:"Space Mono",monospace;font-size:10.5px;letter-spacing:.14em;color:var(--faint);text-transform:uppercase;margin-bottom:12px}
+.preview .ribbon .live{display:inline-flex;align-items:center;gap:7px;color:var(--green-soft)}
+.preview .ribbon .live::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{50%{opacity:.35}}
+.preview .art{
+  aspect-ratio:16/10;border-radius:12px;position:relative;overflow:hidden;
+  background:
+    radial-gradient(120% 120% at 70% 20%,rgba(255,94,58,.55),transparent 55%),
+    radial-gradient(120% 120% at 20% 90%,rgba(90,159,212,.6),transparent 55%),
+    linear-gradient(160deg,#15171d,#0c0e12);
+  border:1px solid var(--rim);
+}
+.preview .art .px{position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:18px 18px;mask-image:radial-gradient(circle at 50% 50%,#000,transparent 80%)}
+.preview .art .lantern{position:absolute;left:50%;top:54%;width:26px;height:26px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle,#ffd27a,#ff7a2f 60%,transparent 75%);filter:blur(.4px);box-shadow:0 0 40px 8px rgba(255,140,50,.6);animation:flick 3.5s ease-in-out infinite}
+@keyframes flick{45%{opacity:.78;transform:translate(-50%,-50%) scale(.94)}}
+.preview .meta{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+.preview .meta .t{font-family:"Dirtbag";font-weight:400;font-size:1rem}
+.preview .meta .by{font-size:12px;color:var(--mute)}
+.preview .meta .price{font-family:"Space Mono",monospace;font-weight:700;font-size:1.1rem;color:var(--green-soft)}
+.preview .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.preview .stats div{background:var(--glass);border:1px solid var(--rim);border-radius:10px;padding:9px 11px}
+.preview .stats .v{font-family:"Dirtbag";font-weight:400;font-size:1.05rem}
+.preview .stats .k{font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.12em;text-transform:uppercase;color:var(--faint);margin-top:3px}
+
+/* ============ SECTION HEADERS ============ */
+.p-head{margin-bottom:30px;max-width:64ch}
+.p-head .eyebrow{margin-bottom:16px}
+.p-head h2{margin-bottom:14px}
+
+/* ============ VALUE CHAIN ============ */
+.chain{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:8px}
+.chain span{font-family:"Space Mono",monospace;font-size:12.5px;color:var(--ink);background:var(--glass);border:1px solid var(--rim);padding:8px 14px;border-radius:999px}
+.chain .sep{border:0;background:none;color:var(--green);font-weight:700;padding:0 2px}
+
+/* ============ AUDIENCE SWITCHER (signature) ============ */
+.aud-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:24px}
+.aud-tab{
+  font-family:"Space Mono",monospace;font-size:12.5px;letter-spacing:.04em;
+  color:var(--mute);background:var(--glass);border:1px solid var(--rim);
+  padding:10px 16px;border-radius:999px;cursor:pointer;transition:.2s;
+}
+.aud-tab:hover{color:var(--ink);border-color:var(--rim-strong)}
+.aud-tab[aria-selected="true"]{color:#0b0c0f;background:var(--blue-soft);border-color:transparent;font-weight:700;box-shadow:0 8px 22px -10px rgba(90,159,212,.8)}
+.aud-body{display:grid;grid-template-columns:1.3fr .7fr;gap:clamp(20px,3vw,40px);align-items:start}
+.aud-statement{font-family:"Dirtbag";font-weight:400;font-size:clamp(1.3rem,2.3vw,1.8rem);line-height:1.22;letter-spacing:.01em}
+.aud-detail{color:var(--mute);margin-top:16px;font-size:1.02rem}
+.aud-exchange{display:flex;flex-direction:column;gap:12px}
+.exch{background:var(--glass);border:1px solid var(--rim);border-radius:14px;padding:16px 18px}
+.exch .k{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint)}
+.exch .v{font-weight:500;margin-top:5px}
+.exch.give .v{color:var(--blue-soft)}
+.exch.get .v{color:var(--green-soft)}
+.fade-swap{animation:fadeSwap .45s ease}
+@keyframes fadeSwap{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ============ SERVICES (borderless section, large cards) ============ */
+.services{border:0;background:none;padding:0}
+.svc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--gap)}
+.svc{
+  background:var(--glass);border:1px solid var(--rim);border-radius:var(--radius);
+  padding:clamp(22px,2.4vw,36px);aspect-ratio:1/1;min-width:0;
+  display:flex;flex-direction:column;justify-content:center;
+  backdrop-filter:blur(20px) saturate(120%);-webkit-backdrop-filter:blur(20px) saturate(120%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 30px 60px -34px rgba(0,0,0,.7);
+  transition:transform .25s,border-color .25s,background .25s;
+}
+.svc:hover{transform:translateY(-6px);border-color:var(--rim-strong);background:var(--glass-2)}
+.svc .ico{width:clamp(96px,8.5vw,128px);height:clamp(96px,8.5vw,128px);margin-bottom:18px;border-radius:20px;display:grid;place-items:center;background:radial-gradient(circle at 50% 40%,rgba(124,184,77,.16),transparent 70%)}
+.svc .ico img{width:88%;height:88%;object-fit:contain}
+.svc h3{margin-bottom:11px;font-size:clamp(1.2rem,1.7vw,1.5rem)}
+.svc p{color:var(--mute);font-size:1.02rem}
+
+/* ============ ECOSYSTEM FLOW ============ */
+.eco{display:grid;grid-template-columns:1fr auto 1fr;gap:clamp(14px,2.5vw,34px);align-items:center}
+.eco-col{display:flex;flex-direction:column;gap:12px}
+.eco-node{font-family:"Space Mono",monospace;font-size:13px;background:var(--glass);border:1px solid var(--rim);border-radius:12px;padding:13px 16px;text-align:center;transition:.25s}
+.eco-node:hover{border-color:var(--rim-strong);color:var(--ink)}
+.eco-col.left .eco-node{color:var(--blue-soft)}
+.eco-col.right .eco-node{color:var(--green-soft)}
+.eco-core{
+  width:clamp(120px,16vw,168px);aspect-ratio:1;border-radius:50%;
+  display:grid;place-items:center;text-align:center;
+  background:radial-gradient(circle,rgba(255,255,255,.08),rgba(255,255,255,.02));
+  border:1px solid var(--rim-strong);
+  box-shadow:0 0 0 8px rgba(255,255,255,.02),0 0 60px -10px rgba(90,159,212,.5),inset 0 1px 0 rgba(255,255,255,.15);
+}
+.eco-core span{font-family:"Dirtbag";font-weight:400;font-size:clamp(.95rem,1.4vw,1.15rem);line-height:1.1}
+.eco-core small{display:block;font-family:"Space Mono",monospace;font-size:9px;letter-spacing:.18em;color:var(--faint);margin-top:7px;text-transform:uppercase}
+.eco-foot{text-align:center;margin-top:26px;color:var(--mute);font-size:1.02rem;max-width:62ch;margin-inline:auto}
+
+/* ============ WHO WE ARE ============ */
+.who h2{max-width:18ch}
+.who .triad{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:30px}
+.triad-card{background:var(--glass);border:1px solid var(--rim);border-radius:var(--radius-sm);padding:22px}
+.triad-card .n{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase}
+.triad-card .h{font-family:"Dirtbag";font-weight:400;font-size:1.5rem;margin:0 0 8px}
+.triad-card.t1 .h{color:var(--blue-soft)}
+.triad-card.t2 .h{color:var(--green-soft)}
+.triad-card.t3 .h{color:var(--orange)}
+.triad-card p{font-size:.94rem;color:var(--mute)}
+.who-lead{font-size:clamp(1.05rem,1.6vw,1.25rem);color:var(--ink);max-width:66ch}
+.who-quote cite{display:block;margin-top:10px;font-style:normal;font-size:.8rem;letter-spacing:.04em;color:var(--faint)}
+.who-close{margin-top:26px;font-family:"Dirtbag",sans-serif;font-size:clamp(1.2rem,2vw,1.6rem);letter-spacing:.02em;color:var(--green-soft)}
+
+/* ============ FOR ARTISTS / COLLECTORS ============ */
+.split{display:grid;grid-template-columns:1fr 1px 1fr;gap:clamp(28px,4vw,64px);padding:clamp(32px,4vw,56px)}
+.split-divide{background:linear-gradient(180deg,transparent,var(--rim) 18%,var(--rim) 82%,transparent)}
+.split-title{font-size:clamp(1.7rem,2.6vw,2.4rem);margin-bottom:26px}
+.feat{display:flex;gap:16px;align-items:flex-start;margin-bottom:22px}
+.feat:last-child{margin-bottom:0}
+.feat-ico{flex:0 0 auto;width:44px;height:44px;border-radius:12px;display:grid;place-items:center}
+.fi-orange{color:var(--orange);background:rgba(255,94,58,.14);border:1px solid rgba(255,94,58,.3)}
+.fi-blue{color:var(--blue-soft);background:rgba(90,159,212,.14);border:1px solid rgba(90,159,212,.32)}
+.feat h3{font-family:"Space Grotesk";font-weight:600;font-size:1.02rem;letter-spacing:0;margin-bottom:4px}
+.feat p{color:var(--mute);font-size:.95rem;line-height:1.5}
+
+/* ============ JOIN / SIGNUP FORM ============ */
+.join-panel{display:grid;grid-template-columns:1fr 1fr;gap:0;padding:0;overflow:hidden}
+.join-art{position:relative;min-height:340px}
+.join-art img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.join-form{background:#3a64f0;padding:clamp(30px,3.5vw,52px);display:flex;flex-direction:column;justify-content:center}
+.join-form h2{color:#fff;margin-bottom:8px}
+.join-sub{color:rgba(255,255,255,.85);font-size:1rem;margin-bottom:24px}
+.join-form form{display:flex;flex-direction:column;gap:14px}
+.join-form select,.join-form input{
+  width:100%;font-family:"Space Grotesk";font-size:15px;color:#16181d;
+  background:#eceef2;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:13px 15px;outline:none;transition:box-shadow .15s;
+}
+.join-form select{appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%2316181d' stroke-width='2'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 15px center}
+.join-form input::placeholder{color:#7a7f88}
+.join-form select:focus,.join-form input:focus{box-shadow:0 0 0 3px rgba(255,255,255,.55)}
+.jf-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.jf-submit{
+  align-self:center;margin-top:6px;font-family:"Space Grotesk";font-weight:600;font-size:15px;
+  color:#16181d;background:#fff;border:0;border-radius:999px;padding:13px 40px;cursor:pointer;transition:transform .15s,box-shadow .15s;
+  box-shadow:0 10px 24px -10px rgba(0,0,0,.5);
+}
+.jf-submit:hover{transform:translateY(-2px)}
+.jf-msg{min-height:1em;font-size:.9rem;color:#fff;text-align:center;margin:4px 0 0}
+.jf-msg.err{color:#ffd9d2}
+.vh{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);border:0}
+
+/* ============ CTA PANEL ============ */
+.cta-panel{text-align:center;padding:clamp(40px,6vw,72px) var(--pad);background:linear-gradient(150deg,rgba(255,94,58,.10),rgba(125,84,201,.10) 55%,rgba(90,159,212,.12))}
+.cta-panel h2{margin-bottom:14px}
+.cta-panel p{margin:0 auto 30px;max-width:48ch}
+.cta-panel .btn-primary{font-size:16px;padding:15px 30px}
+
+/* ============ FOOTER ============ */
+.foot{padding:clamp(34px,4vw,52px) var(--pad) 30px}
+.foot-top{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:32px}
+.foot-brand img{height:26px;margin-bottom:16px}
+.foot-brand p{color:var(--mute);font-size:.94rem;max-width:34ch}
+.foot-col h4{font-family:"Space Mono",monospace;font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--faint);margin-bottom:14px}
+.foot-col a{display:block;color:var(--mute);font-size:.95rem;padding:5px 0;transition:.2s}
+.foot-col a:hover{color:var(--ink)}
+.foot-rule{height:1px;background:var(--rim);margin:34px 0 22px}
+.foot-bottom{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap}
+.foot-bottom .principle{font-family:"Space Mono",monospace;font-size:11.5px;color:var(--faint);letter-spacing:.04em}
+.foot-bottom .principle b{color:var(--mute);font-weight:400}
+.foot-bottom .cr{font-family:"Space Mono",monospace;font-size:11.5px;color:var(--faint)}
+
+/* ============ REVEAL ============ */
+.reveal{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.2,.7,.2,1),transform .7s cubic-bezier(.2,.7,.2,1)}
+.reveal.in{opacity:1;transform:none}
+
+/* ============ RESPONSIVE ============ */
+@media(max-width:1200px){
+  .af4,.af5,.af9,.af10{display:none}
+}
+@media(max-width:1040px){
+  .af2,.af7{display:none}
+}
+@media(max-width:960px){
+  .aud-body{grid-template-columns:1fr}
+  .svc-grid{grid-template-columns:1fr}
+  .svc{aspect-ratio:auto;min-height:240px;justify-content:flex-start}
+  .eco{grid-template-columns:1fr;gap:18px}
+  .eco-col{flex-direction:row;flex-wrap:wrap;justify-content:center}
+  .eco-core{margin:8px auto}
+  .who .triad{grid-template-columns:1fr}
+  .foot-top{grid-template-columns:1fr 1fr}
+  .split{grid-template-columns:1fr;gap:30px}
+  .split-divide{display:none}
+  .join-panel{grid-template-columns:1fr}
+  .join-art{min-height:220px}
+}
+@media(max-width:760px){
+  .art-field{display:none}
+  .wordmark-anim{width:min(92%,420px)}
+}
+@media(max-width:680px){
+  .nav-links{display:none}
+  .nav-links.open{display:flex;position:absolute;top:64px;right:0;left:0;flex-direction:column;align-items:stretch;gap:6px;background:rgba(12,14,18,.92);backdrop-filter:blur(20px);border:1px solid var(--rim);border-radius:20px;padding:14px}
+  .nav-links.open a{padding:12px 16px}
+  .nav-toggle{display:block}
+  .brand-name{font-size:16px}
+  .triad,.foot-top{grid-template-columns:1fr !important}
+}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none !important;transition:none !important;scroll-behavior:auto}
+  .reveal{opacity:1;transform:none}
+}
+*:focus-visible{outline:2px solid var(--blue-soft);outline-offset:3px;border-radius:6px}
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+<div class="glow g1"></div>
+<div class="glow g2"></div>
+<div class="glow g3"></div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner shell" style="padding-left:14px;padding-right:14px">
+    <a href="#top" class="brand" aria-label="Morianah Inc home">
+      <img class="brand-mark" src="./assets/logo-full.png" alt="Morianah Inc" />
+    </a>
+    <a href="./enter/" class="nav-cta" data-live>Enter platform</a>
+  </div>
+</nav>
+
+<main class="shell" id="top">
+<div class="stack">
+
+  <!-- HERO (borderless, full-bleed) -->
+  <section class="hero reveal" id="hero">
+    <div class="art-field" aria-hidden="true">
+      <figure class="art-float af1"><img src="./assets/art/a1.jpg" alt="" loading="lazy"></figure>
+      <figure class="art-float af2"><img src="./assets/art/a3.jpg" alt="" loading="lazy"></figure>
+      <figure class="art-float af3"><img src="./assets/art/a6.jpg" alt="" loading="lazy"></figure>
+      <figure class="art-float af4"><img src="./assets/art/a7.jpg" alt="" loading="lazy"></figure>
+      <figure class="art-float af5"><img src="./assets/art/a2.jpg" alt="" loading="lazy"></figure>
+      <figure class="art-float af6"><img src="./assets/art/a5.jpg" alt="" loading="lazy"></figure>
+      <figure class="art-float af7"><img src="./assets/art/a8.jpg" alt="" loading="lazy"></figure>
+      <figure class="art-float af8"><img src="./assets/art/a4.jpg" alt="" loading="lazy"></figure>
+      <figure class="art-float af9"><img src="./assets/art/a6.jpg" alt="" loading="lazy"></figure>
+      <figure class="art-float af10"><img src="./assets/art/a3.jpg" alt="" loading="lazy"></figure>
+    </div>
+    <div class="hero-center">
+      <img class="wordmark-anim" src="./assets/logo-anim.gif" alt="Morianah Inc" />
+      <p class="hero-tagline" aria-label="Meaning, Value, Purpose">
+        <span class="word-wheel" id="wordWheel"><span>Meaning</span></span>
+      </p>
+      <p class="hero-freedom">Freedom through art</p>
+      <div class="hero-cta" style="justify-content:center">
+        <a href="./enter/" class="btn btn-primary" data-live>Enter the platform <span class="arr">→</span></a>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT WE OFFER (borderless, large cards, no title) -->
+  <section class="services reveal" id="services">
+    <div class="svc-grid">
+      <article class="svc">
+        <div class="ico"><img src="./assets/global.gif" alt="" /></div>
+        <h3>Global Audience</h3>
+        <p>Reach collectors and institutions worldwide. Let the work be seen beyond borders.</p>
+      </article>
+      <article class="svc">
+        <div class="ico"><img src="./assets/exhibition.gif" alt="" /></div>
+        <h3>Immersive Exhibitions</h3>
+        <p>Show work across online and real-world spaces, designed as one continuous experience.</p>
+      </article>
+      <article class="svc">
+        <div class="ico"><img src="./assets/community.gif" alt="" /></div>
+        <h3>Community Engagement</h3>
+        <p>Connect, collaborate and grow with fellow creatives through a living cultural movement.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- FOR ARTISTS / FOR COLLECTORS -->
+  <section class="panel split reveal" id="for-you">
+    <div class="split-col">
+      <h2 class="split-title">For <span class="orange-ink">Artists</span></h2>
+      <div class="feat">
+        <div class="feat-ico fi-orange" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".8" fill="currentColor"/><circle cx="17.5" cy="10.5" r=".8" fill="currentColor"/><circle cx="8.5" cy="7.5" r=".8" fill="currentColor"/><circle cx="6.5" cy="12.5" r=".8" fill="currentColor"/><path d="M12 2a10 10 0 1 0 0 20c1.1 0 2-.9 2-2 0-.5-.2-1-.5-1.3-.3-.4-.5-.8-.5-1.2 0-1 .8-1.5 1.7-1.5H17a5 5 0 0 0 5-5c0-4.4-4.5-8-10-8z"/></svg></div>
+        <div><h3>Mint &amp; Showcase</h3><p>Turn your digital creations into verified collectibles with our seamless minting tools.</p></div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico fi-orange" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6z"/></svg></div>
+        <div><h3>Full Ownership</h3><p>Retain complete control and rights over your work with verified provenance.</p></div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico fi-orange" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17l5-5 3 3 7-7"/><path d="M16 8h4v4"/></svg></div>
+        <div><h3>Earn Royalties</h3><p>Automatically receive royalties on every secondary sale of your artwork.</p></div>
+      </div>
+    </div>
+    <div class="split-divide" aria-hidden="true"></div>
+    <div class="split-col">
+      <h2 class="split-title">For <span class="blue-ink">Collectors</span></h2>
+      <div class="feat">
+        <div class="feat-ico fi-blue" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/></svg></div>
+        <div><h3>Discover Talent</h3><p>Explore curated galleries and find emerging artists before the world does.</p></div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico fi-blue" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9 6.8 19.2l1-5.8L3.5 9.2l5.9-.9z"/></svg></div>
+        <div><h3>Verified Authenticity</h3><p>Every piece is verified, ensuring genuine ownership and rarity.</p></div>
+      </div>
+      <div class="feat">
+        <div class="feat-ico fi-blue" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg></div>
+        <div><h3>Exclusive Access</h3><p>Unlock gated spaces, private drops, and direct communication with creators.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHO WE ARE -->
+  <section class="panel who reveal" id="who-we-are">
+    <div class="p-head">
+      <h2>Who we are.</h2>
+      <p class="lead who-lead">Morianah is a cultural infrastructure company. We empower free creative expression that creates meaning, generates value, and inspires purpose in a rapidly changing world.</p>
+    </div>
+    <div class="triad">
+      <div class="triad-card t1"><div class="h">Meaning</div><p>Meaning lives in the stories we tell, the emotions we express, the memories we preserve, and the questions we ask about ourselves and the world. In a rapidly changing world, meaning keeps us connected to who we are, where we come from, and the future we choose to build.</p></div>
+      <div class="triad-card t2"><div class="h">Value</div><p>Value is the positive impact that creativity generates when it is shared. It exists wherever ideas inspire people, strengthen communities, solve problems, create opportunity, or preserve knowledge.</p></div>
+      <div class="triad-card t3"><div class="h">Purpose</div><p>Purpose aligns individual expression with collective progress, allowing art to become a force for education, innovation, cultural continuity, and human development.</p></div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="panel cta-panel reveal">
+    <h2>Your spectrum starts here.</h2>
+    <p class="lead" style="color:var(--mute)">Join thousands of artists and collectors shaping the future of digital art.</p>
+    <a href="./enter/" class="btn btn-primary" data-live>Enter the platform <span class="arr">→</span></a>
+  </section>
+
+  <!-- JOIN / SIGNUP FORM -->
+  <section class="panel join-panel reveal" id="join">
+    <div class="join-art" aria-hidden="true"><img src="./assets/art/form-art.jpg" alt=""></div>
+    <div class="join-form">
+      <h2>Welcome to Morianah</h2>
+      <p class="join-sub">Tell us who you are and we'll be in touch.</p>
+      <form id="joinForm" novalidate>
+        <label class="vh" for="jf-role">I am</label>
+        <select id="jf-role" name="role" required>
+          <option value="" disabled selected>Select one</option>
+          <option value="Artist">I am an artist</option>
+          <option value="Collector">I am a collector</option>
+          <option value="Curator">I am a curator</option>
+          <option value="Visitor">I am a visitor</option>
+        </select>
+        <div class="jf-row">
+          <input id="jf-first" name="first" type="text" placeholder="First name" autocomplete="given-name" required>
+          <input id="jf-last" name="last" type="text" placeholder="Last name" autocomplete="family-name" required>
+        </div>
+        <input id="jf-email" name="email" type="email" placeholder="Email" autocomplete="email" required>
+        <input type="text" name="_honey" class="vh" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button type="submit" class="jf-submit">Submit</button>
+        <p class="jf-msg" id="jfMsg" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="panel foot reveal">
+    <div class="foot-top">
+      <div class="foot-brand">
+        <img src="./assets/logo-mark.png" alt="Morianah Inc" />
+        <p>A cultural infrastructure company that creates, amplifies and distributes value through creativity.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Platform</h4>
+        <a href="./enter/" data-live>Enter platform</a>
+        <a href="./enter/" data-live>How to sell</a>
+        <a href="./enter/" data-live>Browse catalogue</a>
+        <a href="./enter/" data-live>Log in</a>
+      </div>
+      <div class="foot-col">
+        <h4>Company</h4>
+        <a href="#who-we-are">Who we are</a>
+        <a href="#services">What we offer</a>
+        <a href="mailto:hello@morianah.com">Contact</a>
+      </div>
+      <div class="foot-col">
+        <h4>Connect</h4>
+        <a href="mailto:hello@morianah.com">hello@morianah.com</a>
+        <a href="#">Partnerships</a>
+        <a href="#">Press</a>
+        <a href="#">Foundation</a>
+      </div>
+    </div>
+    <div class="foot-rule"></div>
+    <div class="foot-bottom">
+      <div class="principle"><b>Technology is the instrument · Culture is the medium · Humanity is the purpose</b></div>
+      <div class="cr">© <span id="yr"></span> Morianah Inc</div>
+    </div>
+  </footer>
+
+</div>
+</main>
+
+<script>
+/* ===== CONFIG: where signup submissions go =====
+   The form POSTs to /api/submit — a Cloudflare Pages Function on this same site
+   (see functions/api/submit.js). That function emails each submission to the inbox
+   via Resend. Because it's same-origin, there's no third-party call to be blocked. */
+const CONTACT_EMAIL = "morianahincorporated@gmail.com";
+const FORM_ENDPOINT = "/api/submit";
+
+/* ---- rotating word wheel ---- */
+(function(){
+  const wheel=document.getElementById('wordWheel');
+  if(!wheel) return;
+  const words=["Meaning","Value","Purpose"];
+  let i=0;
+  const reduce=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){ wheel.innerHTML="<span>Meaning, Value, Purpose</span>"; return; }
+  setInterval(()=>{
+    wheel.classList.remove('in'); wheel.classList.add('out');
+    setTimeout(()=>{
+      i=(i+1)%words.length;
+      wheel.innerHTML="<span>"+words[i]+"</span>";
+      wheel.classList.remove('out'); wheel.classList.add('in');
+    },420);
+  },2200);
+})();
+
+/* ---- signup form ---- */
+(function(){
+  const form=document.getElementById('joinForm'); if(!form) return;
+  const msg=document.getElementById('jfMsg');
+  const btn=form.querySelector('.jf-submit');
+  form.addEventListener('submit',async (e)=>{
+    e.preventDefault();
+    if(form['_honey'] && form['_honey'].value){return;} // honeypot: silently drop bots
+    const data={
+      role:form.role.value, first:form.first.value.trim(), last:form.last.value.trim(),
+      email:form.email.value.trim()
+    };
+    if(!data.role||!data.first||!data.last||!data.email){
+      msg.textContent="Please fill in every field."; msg.classList.add('err'); return;
+    }
+    msg.classList.remove('err'); msg.textContent="Sending…";
+    if(btn){btn.disabled=true;}
+    try{
+      const r=await fetch(FORM_ENDPOINT,{method:"POST",headers:{Accept:"application/json"},body:new FormData(form)});
+      let ok=r.ok; try{const j=await r.json(); ok=ok&&j&&j.ok;}catch(_){/* non-JSON */}
+      if(!ok) throw new Error("bad response");
+      msg.textContent="Thanks — we'll be in touch."; form.reset();
+    }catch(err){
+      msg.textContent="Couldn't send just now. Please email us at "+CONTACT_EMAIL; msg.classList.add('err');
+    }finally{
+      if(btn){btn.disabled=false;}
+    }
+  });
+})();
+
+/* ---- reveal on scroll ---- */
+const io=new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});
+},{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>io.observe(el));
+
+/* ---- year ---- */
+document.getElementById('yr').textContent=new Date().getFullYear();
+</script>
+</body>
+</html>

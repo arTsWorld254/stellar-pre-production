@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Entering — Morianah</title>
+<link rel="icon" href="../assets/favicon.png">
+<style>
+  :root{--bg:#1c1e2c;--paper:#ECE7DC;--mute:#8d90a0}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%;background:var(--bg);color:var(--paper);font-family:"Space Grotesk",Inter,system-ui,sans-serif;overflow:hidden}
+  .stage{position:fixed;inset:0;display:grid;place-items:center;background:var(--bg)}
+  video{width:100%;height:100%;object-fit:contain;background:var(--bg);display:block}
+  .skip{position:fixed;right:22px;bottom:22px;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);
+        text-decoration:none;border:1px solid rgba(255,255,255,.14);border-radius:999px;padding:9px 14px;opacity:0;transition:opacity .4s,color .2s,border-color .2s}
+  .skip.show{opacity:1}
+  .skip:hover{color:var(--paper);border-color:rgba(255,255,255,.4)}
+  .bar{position:fixed;left:0;bottom:0;height:2px;width:0;background:rgba(236,231,220,.55);transition:width .25s linear}
+  @media (prefers-reduced-motion: reduce){ video{display:none} }
+</style>
+</head>
+<body>
+<div class="stage">
+  <video id="v" autoplay muted playsinline preload="auto" poster="../assets/enter/poster.jpg">
+    <source src="../assets/enter/logo.webm" type="video/webm">
+    <source src="../assets/enter/logo.mp4" type="video/mp4">
+  </video>
+</div>
+<a class="skip" id="skip" href="../collections/">Skip →</a>
+<div class="bar" id="bar"></div>
+<script>
+(function(){
+  var NEXT = "../collections/";
+  var v = document.getElementById('v'), bar = document.getElementById('bar'), skip = document.getElementById('skip');
+  var done = false;
+  function go(){ if(done) return; done = true; location.replace(NEXT); }
+  // Respect reduced-motion: skip straight through.
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) { go(); return; }
+  v.addEventListener('ended', go);
+  v.addEventListener('error', go);
+  v.addEventListener('timeupdate', function(){ if(v.duration) bar.style.width = (v.currentTime / v.duration * 100) + '%'; });
+  // If autoplay is blocked (rare with muted+playsinline) or the file never starts, don't trap the visitor.
+  var p = v.play && v.play(); if (p && p.catch) p.catch(go);
+  setTimeout(function(){ skip.classList.add('show'); }, 1200);
+  setTimeout(go, 9500);  // hard fallback: animation is 8s
+})();
+</script>
+</body>
+</html>

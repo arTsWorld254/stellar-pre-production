@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Collections — Morianah</title>
+<link rel="icon" href="../assets/favicon.png">
+<style>
+  @font-face{font-family:"Dirtbag";src:url("../assets/fonts/dirtbag.woff2") format("woff2"),url("../assets/fonts/dirtbag.woff") format("woff");font-display:swap}
+  :root{--void:#0b0b0d;--panel:#141418;--ink:#ECE7DC;--mute:#8b8a86;--rim:rgba(255,255,255,.10);--accent:#F2652E;--blue:#3a64f0;--radius:22px}
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--void);color:var(--ink);font-family:"Space Grotesk",Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased;min-height:100vh}
+  body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
+    background:
+      radial-gradient(900px 500px at 15% -10%,rgba(58,100,240,.18),transparent 60%),
+      radial-gradient(700px 500px at 100% 100%,rgba(242,101,46,.12),transparent 60%),
+      linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+    background-size:auto,auto,40px 40px,40px 40px}
+  .shell{position:relative;z-index:1;max-width:1040px;margin:0 auto;padding:28px clamp(16px,4vw,32px) 80px}
+  header{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:clamp(36px,7vw,72px)}
+  header img{height:34px;width:auto;display:block}
+  header a.back{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);text-decoration:none;border:1px solid var(--rim);border-radius:999px;padding:9px 14px;transition:color .2s,border-color .2s}
+  header a.back:hover{color:var(--ink);border-color:rgba(255,255,255,.35)}
+  .head{margin-bottom:28px}
+  .kick{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--accent);margin-bottom:10px}
+  h1{font-family:"Dirtbag",sans-serif;font-weight:400;font-size:clamp(34px,6vw,58px);line-height:1;letter-spacing:.01em;text-transform:uppercase}
+  .sub{color:var(--mute);margin-top:12px;max-width:56ch;font-size:15px;line-height:1.55}
+  .grid{display:grid;gap:22px}
+  .card{position:relative;display:block;border-radius:var(--radius);overflow:hidden;aspect-ratio:1600/560;min-height:200px;text-decoration:none;color:var(--ink);
+        border:1px solid var(--rim);background:#1a1a1f;box-shadow:0 30px 60px -34px rgba(0,0,0,.8);transform:translateZ(0);transition:transform .35s cubic-bezier(.2,.7,.2,1),border-color .3s}
+  .card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transition:transform .8s cubic-bezier(.2,.7,.2,1)}
+  .card::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0) 35%,rgba(0,0,0,.72) 100%)}
+  .card:hover{transform:translateY(-4px);border-color:rgba(255,255,255,.28)}
+  .card:hover img{transform:scale(1.04)}
+  .card .meta{position:absolute;left:clamp(16px,3vw,28px);right:clamp(16px,3vw,28px);bottom:clamp(14px,2.6vw,24px);z-index:2;display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+  .card h2{font-family:"Dirtbag",sans-serif;font-weight:400;font-size:clamp(18px,3vw,30px);line-height:1.02;text-transform:uppercase;letter-spacing:.01em;text-shadow:0 2px 14px rgba(0,0,0,.5);max-width:20ch}
+  .card .pieces{display:block;margin-top:8px;font-family:"Space Grotesk",Inter,sans-serif;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:rgba(236,231,220,.85)}
+  .card .cta{flex:0 0 auto;font-size:11px;letter-spacing:.22em;text-transform:uppercase;background:rgba(236,231,220,.92);color:#111;border-radius:999px;padding:10px 16px;white-space:nowrap;transition:background .2s}
+  .card:hover .cta{background:#fff}
+  .card .tag{position:absolute;top:14px;left:16px;z-index:2;font-size:10px;letter-spacing:.24em;text-transform:uppercase;background:rgba(0,0,0,.5);backdrop-filter:blur(6px);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 10px}
+  .card.soon{pointer-events:none;filter:grayscale(.4) brightness(.75)}
+  .note{margin-top:28px;color:var(--mute);font-size:12px;letter-spacing:.08em}
+  .note b{color:var(--ink);font-weight:500}
+  footer{margin-top:60px;border-top:1px solid var(--rim);padding-top:18px;display:flex;justify-content:space-between;gap:12px;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--mute)}
+  header .right{display:flex;gap:10px;align-items:center}
+  header a.studio{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#111;background:var(--ink);text-decoration:none;border-radius:999px;padding:9px 14px;transition:background .2s}
+  header a.studio:hover{background:#fff}
+  .studio-panel{margin-top:40px;border:1px solid var(--rim);border-radius:var(--radius);background:linear-gradient(135deg,rgba(242,101,46,.14),rgba(58,100,240,.10)),var(--panel);padding:clamp(22px,4vw,36px);display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap}
+  .studio-panel h2{font-family:"Dirtbag",sans-serif;font-weight:400;font-size:clamp(22px,3.6vw,34px);line-height:1;text-transform:uppercase;letter-spacing:.01em}
+  .studio-panel p{color:var(--mute);margin-top:10px;max-width:52ch;font-size:14px;line-height:1.55}
+  .studio-panel .roles{margin-top:12px;display:flex;gap:8px;flex-wrap:wrap}
+  .studio-panel .roles span{font-size:10px;letter-spacing:.22em;text-transform:uppercase;border:1px solid var(--rim);border-radius:999px;padding:5px 9px;color:rgba(236,231,220,.8)}
+  .studio-panel a.go{flex:0 0 auto;font-size:11px;letter-spacing:.22em;text-transform:uppercase;background:var(--ink);color:#111;text-decoration:none;border-radius:999px;padding:14px 22px;transition:background .2s}
+  .studio-panel a.go:hover{background:#fff}
+  @media (max-width:600px){ .card .cta{display:none} }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <a href="../"><img src="../assets/logo-wordmark.png" alt="Morianah"></a>
+    <div class="right"><a class="back" href="../">← Back to site</a><a class="studio" id="studio_top" href="#">Studio</a></div>
+  </header>
+
+  <div class="head">
+    <div class="kick">Virtual exhibitions</div>
+    <h1>Collections</h1>
+    <p class="sub">Choose a collection to enter its exhibition. Each one is a walkable space — move room to room, look around, and read the work where it hangs.</p>
+  </div>
+
+  <div class="grid" id="grid"></div>
+  <p class="note" id="note"></p>
+
+  <section class="studio-panel" id="studio">
+    <div>
+      <div class="kick">On chain · Stellar testnet</div>
+      <h2>Morianah Studio</h2>
+      <p>Sign in with your Stellar wallet. Artists apply and upload; verifiers review; approved works are minted on the Morianah contract with the artist's royalty written in.</p>
+      <div class="roles"><span>Artist</span><span>Verifier</span><span>Curator</span><span>Collector</span></div>
+    </div>
+    <a class="go" id="studio_go" href="#">Open Studio →</a>
+  </section>
+
+  <footer><span>Morianah Inc.</span><span>Experimental build</span></footer>
+</div>
+
+<script>
+/* ====== CMS-style collection list ======
+   Add a collection by appending one object. `href` is the exhibition entry point.
+   status: "live" | "soon"  (soon = shown but not clickable) */
+/* The on-chain app (Cloudflare Worker). Change this one line when app.morianahinc.art is attached. */
+var STUDIO_URL = "https://morianah-api.morianahincorporated.workers.dev/studio";
+document.getElementById('studio_top').href = STUDIO_URL;
+document.getElementById('studio_go').href = STUDIO_URL;
+
+var COLLECTIONS = [
+  {
+    slug: "if-flowers-went-to-war",
+    title: "If Flowers Went to War",
+    pieces: 114,
+    image: "../assets/collections/if-flowers-went-to-war.jpg",
+    href: "../experience/if-flowers-went-to-war/",
+    tag: "AI Collection · 2026",
+    status: "live"
+  }
+];
+
+(function(){
+  var grid = document.getElementById('grid');
+  COLLECTIONS.forEach(function(c){
+    var a = document.createElement('a');
+    a.className = 'card' + (c.status === 'soon' ? ' soon' : '');
+    a.href = c.status === 'soon' ? '#' : c.href;
+    a.setAttribute('aria-label', c.title);
+    a.innerHTML =
+      '<img src="' + c.image + '" alt="">' +
+      (c.tag ? '<span class="tag">' + c.tag + '</span>' : '') +
+      '<div class="meta"><div><h2>' + c.title + '</h2>' +
+      '<span class="pieces">' + c.pieces + ' pieces' + (c.status === 'soon' ? ' · coming soon' : '') + '</span></div>' +
+      '<span class="cta">' + (c.status === 'soon' ? 'Soon' : 'Enter exhibition →') + '</span></div>';
+    grid.appendChild(a);
+  });
+  var live = COLLECTIONS.filter(function(c){ return c.status === 'live'; }).length;
+  document.getElementById('note').innerHTML = '<b>' + live + '</b> exhibition' + (live === 1 ? '' : 's') + ' open. More collections are being prepared.';
+})();
+</script>
+</body>
+</html>

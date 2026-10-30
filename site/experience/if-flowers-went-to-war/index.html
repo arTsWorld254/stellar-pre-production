@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>If Flowers Went to War — Virtual Exhibition · Morianah</title>
+<meta name="robots" content="noindex">
+<link rel="icon" href="../../assets/favicon.png">
+<style>
+  :root { --ink: #1a1714; --paper: #f3ecdf; --sand: #d8c3a0; --accent: #b9542d; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; overflow: hidden; background: #000; font-family: Georgia, "Times New Roman", serif; color: var(--paper); }
+  #pano { position: absolute; inset: 0; }
+  #title { position: absolute; top: 18px; left: 20px; pointer-events: none; text-shadow: 0 1px 6px rgba(0,0,0,.6); }
+  #title h1 { font-weight: 300; letter-spacing: .14em; font-size: 15px; text-transform: uppercase; opacity: .85; }
+  #title h2 { font-weight: 400; font-size: 24px; margin-top: 4px; font-style: italic; }
+  #title h3 { font-weight: 400; font-size: 11px; letter-spacing: .12em; text-transform: uppercase; opacity: .7; margin-top: 6px; }
+  #menu { position: absolute; left: 0; right: 0; bottom: 0; display: flex; gap: 6px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none;
+          background: linear-gradient(transparent, rgba(0,0,0,.55)); }
+  #menu::-webkit-scrollbar { display: none; }
+  #menu button { flex: 0 0 auto; border: 1px solid rgba(255,255,255,.35); background: rgba(20,18,14,.55); color: var(--paper); border-radius: 999px;
+                 padding: 7px 13px; font-size: 13px; cursor: pointer; backdrop-filter: blur(6px); transition: background .2s, border-color .2s; }
+  #menu button:hover, #menu button.active { background: var(--paper); color: var(--ink); border-color: var(--paper); }
+  #menu .sep { flex: 0 0 auto; width: 1px; background: rgba(255,255,255,.3); margin: 4px 4px; }
+  .hs-link { width: 44px; height: 44px; border-radius: 50%; background: rgba(244,239,230,.92); display: grid; place-items: center; cursor: pointer;
+             box-shadow: 0 2px 10px rgba(0,0,0,.4); transition: transform .15s; position: relative; }
+  .hs-link:hover { transform: scale(1.12); }
+  .hs-link svg { width: 22px; height: 22px; fill: none; stroke: var(--ink); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+  .hs-link .lbl { position: absolute; top: 50px; left: 50%; transform: translateX(-50%); white-space: nowrap; font-size: 12px; color: var(--paper);
+                  background: rgba(0,0,0,.55); padding: 3px 8px; border-radius: 4px; opacity: 0; transition: opacity .15s; pointer-events: none; }
+  .hs-link:hover .lbl { opacity: 1; }
+  .hs-info { width: 30px; height: 30px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font: 600 15px/1 Georgia, serif;
+             cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,.4); position: relative; }
+  .hs-info .card { position: absolute; left: 40px; top: -8px; width: 300px; background: var(--paper); color: var(--ink); padding: 10px 12px; border-radius: 6px;
+                   font: 13px/1.45 Georgia, serif; display: none; box-shadow: 0 4px 16px rgba(0,0,0,.35); }
+  .hs-info .card b { display: block; font-family: "Helvetica Neue", Helvetica, Arial, sans-serif; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 4px; }
+  .hs-info.open .card { display: block; }
+  #back { position: absolute; right: 18px; top: 16px; z-index: 5; font: 11px/1 "Helvetica Neue", Helvetica, Arial, sans-serif; letter-spacing: .2em; text-transform: uppercase; color: var(--paper); text-decoration: none; border: 1px solid rgba(255,255,255,.35); background: rgba(20,18,14,.55); backdrop-filter: blur(6px); border-radius: 999px; padding: 9px 13px; }
+  #back:hover { background: var(--paper); color: var(--ink); }
+  #hint { position: absolute; right: 18px; top: 58px; font-size: 12px; opacity: .7; pointer-events: none; text-shadow: 0 1px 4px rgba(0,0,0,.6); }
+  @media (max-width: 600px) { #title h2 { font-size: 18px; } #hint { display: none; } }
+</style>
+</head>
+<body>
+<div id="pano"></div>
+<div id="title"><h1 id="tour-title"></h1><h2 id="scene-title"></h2><h3 id="tour-sub"></h3></div>
+<a id="back" href="../../collections/">← Collections</a>
+<div id="hint">drag to look · tap arrows to move</div>
+<div id="menu"></div>
+<script src="marzipano.js"></script>
+<script src="data.js"></script>
+<script>
+(function () {
+  var data = APP_DATA;
+  var viewer = new Marzipano.Viewer(document.getElementById('pano'), { controls: { mouseViewMode: 'drag' } });
+  var limiter = Marzipano.RectilinearView.limit.traditional(4096, 110 * Math.PI / 180, 110 * Math.PI / 180);
+  var rad = function (d) { return d * Math.PI / 180; };
+  var scenes = {};
+  data.scenes.forEach(function (s) {
+    var source = Marzipano.ImageUrlSource.fromString('tiles/' + s.id + '/{z}/{f}/{y}/{x}.jpg', { cubeMapPreviewUrl: 'tiles/' + s.id + '/preview.jpg' });
+    var geometry = new Marzipano.CubeGeometry(s.levels);
+    var view = new Marzipano.RectilinearView({ yaw: rad(s.initialView.yaw), pitch: rad(s.initialView.pitch), fov: rad(s.initialView.fov) }, limiter);
+    var scene = viewer.createScene({ source: source, geometry: geometry, view: view, pinFirstLevel: true });
+    s.links.forEach(function (h) {
+      var el = document.createElement('div'); el.className = 'hs-link';
+      el.innerHTML = '<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg><span class="lbl">' + h.title + '</span>';
+      el.addEventListener('click', function () { switchScene(h.target, h.yaw); });
+      scene.hotspotContainer().createHotspot(el, { yaw: rad(h.yaw), pitch: rad(h.pitch) });
+    });
+    s.infos.forEach(function (h) {
+      var el = document.createElement('div'); el.className = 'hs-info'; el.innerHTML = 'i<div class="card"><b>' + h.title + '</b>' + h.text + '</div>';
+      el.addEventListener('click', function (e) { e.stopPropagation(); el.classList.toggle('open'); });
+      scene.hotspotContainer().createHotspot(el, { yaw: rad(h.yaw), pitch: rad(h.pitch) });
+    });
+    scenes[s.id] = { data: s, scene: scene, view: view };
+  });
+  var menu = document.getElementById('menu'); var lastFloor = null;
+  data.scenes.forEach(function (s) {
+    if (lastFloor !== null && s.floor !== lastFloor) { var sep = document.createElement('div'); sep.className = 'sep'; menu.appendChild(sep); }
+    lastFloor = s.floor;
+    var b = document.createElement('button'); b.textContent = s.title; b.dataset.id = s.id;
+    b.addEventListener('click', function () { switchScene(s.id); }); menu.appendChild(b);
+  });
+  function switchScene(id, yawDeg) {
+    var s = scenes[id];
+    if (yawDeg !== undefined) s.view.setParameters({ yaw: rad(yawDeg), pitch: 0 });
+    s.scene.switchTo({ transitionDuration: 700 });
+    document.getElementById('scene-title').textContent = s.data.title;
+    Array.prototype.forEach.call(menu.querySelectorAll('button'), function (b) { b.classList.toggle('active', b.dataset.id === id); });
+    if (history.replaceState) history.replaceState(null, '', '#' + id);
+  }
+  document.getElementById('tour-title').textContent = data.title;
+  if (data.sub) document.getElementById('tour-sub').textContent = data.sub.org + ' · ' + data.sub.line + ' · ' + data.sub.issue;
+  var start = location.hash.slice(1); if (!scenes[start]) start = data.scenes[0].id;
+  switchScene(start);
+  window.addEventListener('hashchange', function () { var id = location.hash.slice(1); if (scenes[id]) switchScene(id); });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+# never commit these
+node_modules/
+.wrangler/
+.dev.vars
+target/
+.contract-id.*
+.DS_Store
+Thumbs.db
